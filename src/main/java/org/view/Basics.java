@@ -259,7 +259,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private void initComponents(){
         frame = new JFrame("Basics");
 
-        //definição de variaveis
+        //inicialização de variaveis
         row = new String[3];
 
         timesTo.setModel(new SpinnerNumberModel(0,0,null,1));
