@@ -46,13 +46,15 @@
           <text value="Toggle Start/Stop Recording:"/>
         </properties>
       </component>
-      <component id="e7830" class="javax.swing.JComboBox" binding="keyToggleRecording">
+      <component id="cbcb5" class="javax.swing.JLabel" binding="keyToggleRecording">
         <constraints>
           <grid row="3" column="6" row-span="1" col-span="2" vsize-policy="0" hsize-policy="6" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <minimum-size width="100" height="-1"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <text value="Press F1"/>
+        </properties>
       </component>
       <component id="bf724" class="javax.swing.JLabel">
         <constraints>
@@ -62,13 +64,15 @@
           <text value="Toggle Start/Stop Play:"/>
         </properties>
       </component>
-      <component id="9ede7" class="javax.swing.JComboBox" binding="keyTogglePlay">
+      <component id="c70ed" class="javax.swing.JLabel" binding="keyTogglePlay">
         <constraints>
           <grid row="4" column="6" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <minimum-size width="100" height="-1"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <text value="Press F2"/>
+        </properties>
       </component>
       <component id="60755" class="javax.swing.JLabel">
         <constraints>
@@ -78,13 +82,15 @@
           <text value="Stop and Discard Current Record:"/>
         </properties>
       </component>
-      <component id="8aa85" class="javax.swing.JComboBox" binding="keyToggleDiscardCurrent">
+      <component id="4c690" class="javax.swing.JLabel" binding="keyToggleDiscardCurrent">
         <constraints>
           <grid row="5" column="6" row-span="1" col-span="2" vsize-policy="0" hsize-policy="2" anchor="8" fill="1" indent="0" use-parent-layout="false">
             <minimum-size width="100" height="-1"/>
           </grid>
         </constraints>
-        <properties/>
+        <properties>
+          <text value="Press F3"/>
+        </properties>
       </component>
       <component id="6a70e" class="javax.swing.JCheckBox" binding="randomizeClicks">
         <constraints>

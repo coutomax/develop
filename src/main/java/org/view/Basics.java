@@ -6,8 +6,6 @@ import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.awt.geom.GeneralPath;
 import java.util.logging.Logger;
 
@@ -28,9 +26,9 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private JFrame frame;
     private JPanel pn;
     private JSpinner timesTo;
-    private JComboBox keyToggleRecording;
-    private JComboBox keyTogglePlay;
-    private JComboBox keyToggleDiscardCurrent;
+    private JLabel keyToggleRecording;
+    private JLabel keyTogglePlay;
+    private JLabel keyToggleDiscardCurrent;
     private JCheckBox randomizeClicks; //adicionar caixa de seleção desenhável na tela opcional para randomizar
     private JCheckBox randomizeActions; //se o tick for ativado o valor aleatório deve ser mínimo
     private JCheckBox tickClick;
@@ -256,6 +254,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         lastEvent = System.currentTimeMillis();
     }
 
+
     private void initComponents(){
         frame = new JFrame("Basics");
 
@@ -265,14 +264,6 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         timesTo.setModel(new SpinnerNumberModel(0,0,null,1));
         JFormattedTextField numericTimesTo = ((JSpinner.NumberEditor) timesTo.getEditor()).getTextField();
         ((NumberFormatter) numericTimesTo.getFormatter()).setAllowsInvalid(false);
-
-        //fazer condição para evitar a mesma key nas duas (exceto NONE)
-        keyToggleRecording.setModel(new DefaultComboBoxModel(
-                new String[] {"NONE", "F1", "F2", "F3", "F4", "F5", "F6"}));
-        keyTogglePlay.setModel(new DefaultComboBoxModel(
-                new String[] {"NONE", "F1", "F2", "F3", "F4", "F5", "F6"}));
-        keyToggleDiscardCurrent.setModel(new DefaultComboBoxModel(
-                new String[] {"NONE", "F1", "F2", "F3", "F4", "F5", "F6"}));
 
         tabela = new JTable();
         tabela.setModel(new DefaultTableModel(
