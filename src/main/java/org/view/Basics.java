@@ -66,7 +66,6 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     }
 
     private void mouseMoveOnScreen () throws NativeHookException {
-        GlobalScreen.setEventDispatcher(new SwingDispatchService());
         registerListeners();
 
         gp = new GeneralPath();
@@ -119,6 +118,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
 
     private void recordAction (ActionEvent e) throws AWTException, NativeHookException {
         isRecording = !isRecording;
+        lastKeyPressed = "";
         changeStatus();
         mouseMoveOnScreen();
 
@@ -128,6 +128,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     }
 
     public void registerListeners() throws NativeHookException {
+        GlobalScreen.setEventDispatcher(new SwingDispatchService());
         GlobalScreen.isNativeHookRegistered();
         GlobalScreen.registerNativeHook();
         GlobalScreen.addNativeKeyListener(this);
@@ -173,22 +174,24 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
      * @see NativeKeyListener#nativeKeyReleased(NativeKeyEvent)
      */
     public void nativeKeyReleased(NativeKeyEvent e) {
-        String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
-        keyChar = keyChar.substring(8,keyChar.indexOf(","));
+        if (!lastKeyPressed.equals("")){
+            String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
+            keyChar = keyChar.substring(8,keyChar.indexOf(","));
 
-        start = System.currentTimeMillis();
+            start = System.currentTimeMillis();
 
-        Point p = MouseInfo.getPointerInfo().getLocation();
-        row[0] = ""+ keyChar;
-        row[1] = "Key Released "+ e.getKeyCode();
-        row[2] = ""+ delay + "ms";
-        delay = start - lastEvent;
-        updateTable(row);
+            Point p = MouseInfo.getPointerInfo().getLocation();
+            row[0] = ""+ keyChar;
+            row[1] = "Key Released "+ e.getKeyCode();
+            row[2] = ""+ delay + "ms";
+            delay = start - lastEvent;
+            updateTable(row);
 
-        lastEvent = System.currentTimeMillis();
+            lastEvent = System.currentTimeMillis();
 
-        lastKeyPressed = "";
-        lastKeyIsReleased = true;
+            lastKeyPressed = "";
+            lastKeyIsReleased = true;
+        }
     }
 
     /**
