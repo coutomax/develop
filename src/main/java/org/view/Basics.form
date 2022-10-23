@@ -36,6 +36,7 @@
         <properties>
           <alignmentY value="0.5"/>
           <enabled value="true"/>
+          <focusable value="false"/>
         </properties>
       </component>
       <component id="ffb2a" class="javax.swing.JLabel">
@@ -97,6 +98,7 @@
           <grid row="6" column="6" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
+          <focusable value="false"/>
           <text value=""/>
         </properties>
       </component>
@@ -121,6 +123,7 @@
           <grid row="7" column="6" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
+          <focusable value="false"/>
           <text value=""/>
         </properties>
       </component>
@@ -167,6 +170,7 @@
           </grid>
         </constraints>
         <properties>
+          <focusable value="false"/>
           <text value="Record"/>
         </properties>
       </component>
@@ -224,6 +228,7 @@
           </grid>
         </constraints>
         <properties>
+          <focusable value="false"/>
           <text value="Load"/>
         </properties>
       </component>
@@ -237,10 +242,12 @@
       </component>
       <component id="ab794" class="javax.swing.JCheckBox" binding="tickClick">
         <constraints>
-          <grid row="8" column="6" row-span="1" col-span="2" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
+          <grid row="8" column="6" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="8" fill="0" indent="0" use-parent-layout="false"/>
         </constraints>
         <properties>
+          <focusable value="false"/>
           <text value=""/>
+          <toolTipText value="Keeps the clicks deley at 0.6s"/>
         </properties>
       </component>
       <hspacer id="906f1">
@@ -266,6 +273,7 @@
           </grid>
         </constraints>
         <properties>
+          <focusable value="false"/>
           <text value="Save"/>
         </properties>
       </component>
@@ -287,6 +295,7 @@
           </grid>
         </constraints>
         <properties>
+          <focusable value="false"/>
           <text value="Play"/>
         </properties>
       </component>

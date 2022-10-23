@@ -54,6 +54,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private Boolean lastKeyIsReleased;
     private Boolean hasKeyPressed;
     private HashMap<String, Integer> pressedKeys;
+    private int tickBase;
 
     //recursos
     private Robot robot;
@@ -188,9 +189,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     /**
      * @see NativeKeyListener#nativeKeyTyped(NativeKeyEvent)
      */
-    public void nativeKeyTyped(NativeKeyEvent e) {
-
-    }
+    public void nativeKeyTyped(NativeKeyEvent e) { }
 
     /**
      * @see NativeMouseListener#nativeMousePressed(NativeMouseEvent)
@@ -199,8 +198,9 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         start = System.currentTimeMillis();
         Point p = MouseInfo.getPointerInfo().getLocation();
         lastEvent = System.currentTimeMillis();
-        updateTable(p.x+ ", " +p.y, "Mouse Pressed "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"), delay + "ms");
-        delay = start - lastEvent;
+        updateTable(p.x+ ", " +p.y, "Mouse Pressed "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"),
+                (e.getButton() == 1 ? delayCalc(start, lastEvent, true) : delay) + "ms");
+        delay = delayCalc(start, lastEvent, false);
     }
 
     /**
@@ -211,7 +211,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         Point p = MouseInfo.getPointerInfo().getLocation();
         lastEvent = System.currentTimeMillis();
         updateTable(p.x+ ", " +p.y, "Mouse Released "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"), delay + "ms");
-        delay = start - lastEvent;
+        delay = delayCalc(lastEvent, start, false);
     }
 
     /**
@@ -242,6 +242,10 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         delay = start - lastEvent;
     }
 
+    private long delayCalc (long end, long start, Boolean tickable) {
+        return tickable ? tickBase == 0 ? delay : tickBase : end - start;
+    }
+
     private void initComponents(){
         frame = new JFrame("Basics");
 
@@ -257,6 +261,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         lastPoint = null;
         hasKeyPressed = false;
         pressedKeys = new HashMap<>();
+        tickBase = 0;
 
         timesTo.setModel(new SpinnerNumberModel(0,0,null,1));
         JFormattedTextField numericTimesTo = ((JSpinner.NumberEditor) timesTo.getEditor()).getTextField();
@@ -273,6 +278,13 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         scrollPn.setViewportView(tabela);
 
         tableModel = (DefaultTableModel) this.tabela.getModel();
+
+        tickClick.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                tickBase = tickClick.isSelected() ? 600 : 0; //0.6s
+            }
+        });
 
         icon = new ImageIcon("src/main/java/org/icons/robot-excited-outline.png");
 
