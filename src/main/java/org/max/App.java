@@ -1,9 +1,10 @@
 package org.max;
 
+import com.github.kwhat.jnativehook.NativeHookException;
 import org.view.Basics;
 
 public class App {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NativeHookException {
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {

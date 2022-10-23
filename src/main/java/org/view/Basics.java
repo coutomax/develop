@@ -301,5 +301,4 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
-
 }

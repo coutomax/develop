@@ -1,0 +1,2 @@
+há um bug ao pressionar uma tecla, mantê-la pressionada e pressionar outras.
+Ao soltar a primeira tecla que foi mantida não é contado o release dela.
