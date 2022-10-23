@@ -7,6 +7,8 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.GeneralPath;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
@@ -48,7 +50,10 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private String[] row;
     private Boolean isRecording;
     private String lastKeyPressed;
+    private String lastKeyReleased;
     private Boolean lastKeyIsReleased;
+    private Boolean hasKeyPressed;
+    private HashMap<String, Integer> pressedKeys;
 
     //recursos
     private Robot robot;
@@ -150,13 +155,12 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
         keyChar = keyChar.substring(8,keyChar.indexOf(","));
 
-        if(!keyChar.equals(lastKeyPressed) && lastKeyIsReleased){
+        if(!pressedKeys.containsKey(keyChar)){
             start = System.currentTimeMillis();
-
+            pressedKeys.put(keyChar, e.getKeyCode());
             lastKeyPressed = keyChar;
             lastKeyIsReleased = false;
             lastEvent = System.currentTimeMillis();
-
             updateTable(keyChar, "Key Pressed "+ e.getKeyCode(), delay + "ms");
             delay = start - lastEvent;
         }
@@ -166,16 +170,16 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
      * @see NativeKeyListener#nativeKeyReleased(NativeKeyEvent)
      */
     public void nativeKeyReleased(NativeKeyEvent e) {
+        String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
+        keyChar = keyChar.substring(8,keyChar.indexOf(","));
+
         if (!lastKeyPressed.equals("")){
             start = System.currentTimeMillis();
-
-            String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
-            keyChar = keyChar.substring(8,keyChar.indexOf(","));
-
-            lastKeyPressed = "";
+            lastKeyReleased = keyChar;
+            lastKeyPressed = "FREE";
             lastKeyIsReleased = true;
+            pressedKeys.remove(keyChar,e.getKeyCode());
             lastEvent = System.currentTimeMillis();
-
             updateTable(keyChar, "Key Released "+ e.getKeyCode(), delay + "ms");
             delay = start - lastEvent;
         }
@@ -184,7 +188,9 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     /**
      * @see NativeKeyListener#nativeKeyTyped(NativeKeyEvent)
      */
-    public void nativeKeyTyped(NativeKeyEvent e) { }
+    public void nativeKeyTyped(NativeKeyEvent e) {
+
+    }
 
     /**
      * @see NativeMouseListener#nativeMousePressed(NativeMouseEvent)
@@ -211,7 +217,9 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     /**
      * @see NativeMouseListener#nativeMouseClicked(NativeMouseEvent)
      */
-    public void nativeMouseClicked(NativeMouseEvent e) { }
+    public void nativeMouseClicked(NativeMouseEvent e) {
+
+    }
 
     /**
      * @see NativeMouseMotionListener#nativeMouseMoved(NativeMouseEvent)
@@ -245,7 +253,10 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         isRecording = false;
         lastKeyIsReleased = true;
         lastKeyPressed = "";
+        lastKeyReleased = "";
         lastPoint = null;
+        hasKeyPressed = false;
+        pressedKeys = new HashMap<>();
 
         timesTo.setModel(new SpinnerNumberModel(0,0,null,1));
         JFormattedTextField numericTimesTo = ((JSpinner.NumberEditor) timesTo.getEditor()).getTextField();
