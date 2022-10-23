@@ -7,7 +7,6 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.GeneralPath;
-import java.util.logging.Logger;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
@@ -43,21 +42,19 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private ImageIcon icon;
 
     // variáveis manipuláveis
-    private long start = 0;
-    private long delay = 1;
-    private long lastEvent = 0;
+    private long start;
+    private long delay;
+    private long lastEvent;
     private String[] row;
-    private Boolean isRecording = false;
-    private String lastKeyPressed = "";
-    private Boolean lastKeyIsReleased = true;
+    private Boolean isRecording;
+    private String lastKeyPressed;
+    private Boolean lastKeyIsReleased;
 
     //recursos
     private Robot robot;
     private GeneralPath gp;
     private Timer timer;
-    private Point lastPoint = null;
-
-    private static final Logger log = Logger.getLogger(GlobalScreen.class.getPackage().getName());
+    private Point lastPoint;
 
     public Basics () {
         initComponents();
@@ -79,12 +76,11 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                 if (!p.equals(lastPoint)) {
                     start = System.currentTimeMillis();
                     gp.lineTo(p.x, p.y);
-                    row[0] = "" +p.x+ ", " +p.y;
-                    row[1] = "Mouse Movement";
-                    row[2] = ""+ delay + "ms";
-                    updateTable(row);
+                    updateTable(p.x+ ", " +p.y, "Mouse Movement", delay + "ms");
                 }
-                delay  = System.currentTimeMillis() - start;
+                lastEvent  = System.currentTimeMillis();
+
+                delay = lastEvent - start;
                 lastPoint = p;
             }
         };
@@ -96,7 +92,10 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         }
     }
 
-    private void updateTable (String[] row) {
+    private void updateTable (String input, String event, String delayMs) {
+        row[0] = input;
+        row[1] = event;
+        row[2] = delayMs;
         tableModel.addRow(row);
         tabela.scrollRectToVisible(tabela.getCellRect(tabela.getRowCount()-1, 0, true));
     }
@@ -154,17 +153,12 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         if(!keyChar.equals(lastKeyPressed) && lastKeyIsReleased){
             start = System.currentTimeMillis();
 
-            Point p = MouseInfo.getPointerInfo().getLocation();
-            row[0] = ""+ keyChar;
-            row[1] = "Key Pressed "+ e.getKeyCode();
-            row[2] = ""+ delay + "ms";
-            delay = start - lastEvent;
-            updateTable(row);
-
-            lastEvent = System.currentTimeMillis();
-
             lastKeyPressed = keyChar;
             lastKeyIsReleased = false;
+            lastEvent = System.currentTimeMillis();
+
+            updateTable(keyChar, "Key Pressed "+ e.getKeyCode(), delay + "ms");
+            delay = start - lastEvent;
         }
     }
 
@@ -173,22 +167,17 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
      */
     public void nativeKeyReleased(NativeKeyEvent e) {
         if (!lastKeyPressed.equals("")){
+            start = System.currentTimeMillis();
+
             String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
             keyChar = keyChar.substring(8,keyChar.indexOf(","));
 
-            start = System.currentTimeMillis();
-
-            Point p = MouseInfo.getPointerInfo().getLocation();
-            row[0] = ""+ keyChar;
-            row[1] = "Key Released "+ e.getKeyCode();
-            row[2] = ""+ delay + "ms";
-            delay = start - lastEvent;
-            updateTable(row);
-
-            lastEvent = System.currentTimeMillis();
-
             lastKeyPressed = "";
             lastKeyIsReleased = true;
+            lastEvent = System.currentTimeMillis();
+
+            updateTable(keyChar, "Key Released "+ e.getKeyCode(), delay + "ms");
+            delay = start - lastEvent;
         }
     }
 
@@ -203,12 +192,9 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     public void nativeMousePressed(NativeMouseEvent e) {
         start = System.currentTimeMillis();
         Point p = MouseInfo.getPointerInfo().getLocation();
-        row[0] = "" +p.x+ ", " +p.y;
-        row[1] = "Mouse Pressed "+ (e.getButton() == 1 ? "LEFT" : "RIGHT");
-        row[2] = ""+ delay + "ms";
-        delay = start - lastEvent;
-        updateTable(row);
         lastEvent = System.currentTimeMillis();
+        updateTable(p.x+ ", " +p.y, "Mouse Pressed "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"), delay + "ms");
+        delay = start - lastEvent;
     }
 
     /**
@@ -217,12 +203,9 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     public void nativeMouseReleased(NativeMouseEvent e) {
         start = System.currentTimeMillis();
         Point p = MouseInfo.getPointerInfo().getLocation();
-        row[0] = "" +p.x+ ", " +p.y;
-        row[1] = "Mouse Released "+ (e.getButton() == 1 ? "LEFT" : "RIGHT");
-        row[2] = ""+ delay + "ms";
-        delay = start - lastEvent;
-        updateTable(row);
         lastEvent = System.currentTimeMillis();
+        updateTable(p.x+ ", " +p.y, "Mouse Released "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"), delay + "ms");
+        delay = start - lastEvent;
     }
 
     /**
@@ -246,20 +229,23 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     public void nativeMouseWheelMoved(NativeMouseWheelEvent e) {
         start = System.currentTimeMillis();
         Point p = MouseInfo.getPointerInfo().getLocation();
-        row[0] = ""+ (e.getWheelRotation() == 1 ? "DOWN" : "UP"); //default amount: 5
-        row[1] = "Mouse Wheel ";
-        row[2] = ""+ delay + "ms";
-        delay = start - lastEvent;
-        updateTable(row);
         lastEvent = System.currentTimeMillis();
+        updateTable((e.getWheelRotation() == 1 ? "DOWN" : "UP"), "Mouse Wheel", delay + "ms");
+        delay = start - lastEvent;
     }
-
 
     private void initComponents(){
         frame = new JFrame("Basics");
 
         //inicialização de variaveis
         row = new String[3];
+        start = 0;
+        delay = 1;
+        lastEvent = 0;
+        isRecording = false;
+        lastKeyIsReleased = true;
+        lastKeyPressed = "";
+        lastPoint = null;
 
         timesTo.setModel(new SpinnerNumberModel(0,0,null,1));
         JFormattedTextField numericTimesTo = ((JSpinner.NumberEditor) timesTo.getEditor()).getTextField();
