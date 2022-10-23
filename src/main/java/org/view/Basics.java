@@ -86,7 +86,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                 }
                 lastEvent  = System.currentTimeMillis();
 
-                delay = lastEvent - start;
+                delay = delayCalc(lastEvent, start, false);
                 lastPoint = p;
             }
         };
@@ -163,7 +163,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             lastKeyIsReleased = false;
             lastEvent = System.currentTimeMillis();
             updateTable(keyChar, "Key Pressed "+ e.getKeyCode(), delay + "ms");
-            delay = start - lastEvent;
+            delay = delayCalc(start, lastEvent, false);
         }
     }
 
@@ -182,7 +182,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             pressedKeys.remove(keyChar,e.getKeyCode());
             lastEvent = System.currentTimeMillis();
             updateTable(keyChar, "Key Released "+ e.getKeyCode(), delay + "ms");
-            delay = start - lastEvent;
+            delay = delayCalc(start, lastEvent, false);
         }
     }
 
@@ -239,7 +239,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         Point p = MouseInfo.getPointerInfo().getLocation();
         lastEvent = System.currentTimeMillis();
         updateTable((e.getWheelRotation() == 1 ? "DOWN" : "UP"), "Mouse Wheel", delay + "ms");
-        delay = start - lastEvent;
+        delay = delayCalc(start , lastEvent, false);
     }
 
     private long delayCalc (long end, long start, Boolean tickable) {
