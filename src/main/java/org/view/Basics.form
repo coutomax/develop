@@ -90,7 +90,7 @@
           </grid>
         </constraints>
         <properties>
-          <text value="Press F3"/>
+          <text value="Press F5"/>
         </properties>
       </component>
       <component id="6a70e" class="javax.swing.JCheckBox" binding="randomizeClicks">
