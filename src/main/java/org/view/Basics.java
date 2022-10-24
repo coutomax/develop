@@ -21,6 +21,7 @@ import com.github.kwhat.jnativehook.mouse.NativeMouseListener;
 import com.github.kwhat.jnativehook.mouse.NativeMouseMotionListener;
 import com.github.kwhat.jnativehook.mouse.NativeMouseWheelEvent;
 import com.github.kwhat.jnativehook.mouse.NativeMouseWheelListener;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 
 public class Basics implements NativeKeyListener, NativeMouseInputListener, NativeMouseWheelListener{
     //componentes
@@ -54,6 +55,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private Boolean hasKeyPressed;
     private HashMap<String, Integer> pressedKeys;
     private int tickBase;
+    private Boolean ctrlPressed;
 
     //recursos
     private Robot robot;
@@ -168,9 +170,14 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             start = System.currentTimeMillis();
             pressedKeys.put(keyChar, e.getKeyCode());
             lastKeyPressed = keyChar;
-            lastEvent = System.currentTimeMillis();
-            updateTable(keyChar, "Key Pressed "+ e.getKeyCode(), delay + "ms");
-            delay = delayCalc(start, lastEvent, false);
+            ctrlPressed = keyChar.equals("Ctrl");
+            if (tickClick.isSelected() && ctrlPressed) {
+                pressedKeys.put(keyChar, e.getKeyCode());
+            }else {
+                lastEvent = System.currentTimeMillis();
+                updateTable(keyChar, "Key Pressed "+ e.getKeyCode(), delay + "ms");
+                delay = delayCalc(start, lastEvent, false);
+            }
         }
     }
 
@@ -186,8 +193,13 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             lastKeyPressed = "FREE";
             pressedKeys.remove(keyChar,e.getKeyCode());
             lastEvent = System.currentTimeMillis();
-            updateTable(keyChar, "Key Released "+ e.getKeyCode(), delay + "ms");
-            delay = delayCalc(start, lastEvent, false);
+            ctrlPressed = pressedKeys.containsKey("Ctrl");
+            if (tickClick.isSelected() && !ctrlPressed){
+                ctrlPressed = false;
+            } else {
+                updateTable(keyChar, "Key Released "+ e.getKeyCode(), delay + "ms");
+                delay = delayCalc(start, lastEvent, false);
+            }
         }
     }
 
@@ -205,7 +217,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             Point p = MouseInfo.getPointerInfo().getLocation();
             lastEvent = System.currentTimeMillis();
             updateTable(p.x+ ", " +p.y, "Mouse Pressed "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"),
-                    (e.getButton() == 1 ? delayCalc(start, lastEvent, true) : delay) + "ms");
+                    ((e.getButton() == 1 && ctrlPressed)? delayCalc(start, lastEvent, true) : delay) + "ms");
             delay = delayCalc(start, lastEvent, false);
         }
     }
@@ -272,23 +284,28 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     }
 
     private long delayCalc (long end, long start, Boolean tickable) {
-        return tickable ? tickBase == 0 ? delay : tickBase : end - start;
+        return tickable ? (tickBase == 0) ? delay : tickBase : end - start;
     }
 
     private void initComponents(){
         frame = new JFrame("Basics");
 
         //inicialização de variaveis
+        pressedKeys = new HashMap<>();
+
+        hasKeyPressed = false;
+        isRecording = false;
+        ctrlPressed = false;
+
         row = new String[3];
+        lastKeyPressed = "";
+
+        lastEvent = 0;
+        tickBase = 0;
         start = 0;
         delay = 1;
-        lastEvent = 0;
-        isRecording = false;
-        lastKeyPressed = "";
+
         lastPoint = null;
-        hasKeyPressed = false;
-        pressedKeys = new HashMap<>();
-        tickBase = 0;
 
         timesTo.setModel(new SpinnerNumberModel(0,0,null,1));
         JFormattedTextField numericTimesTo = ((JSpinner.NumberEditor) timesTo.getEditor()).getTextField();
