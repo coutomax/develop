@@ -56,6 +56,8 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private HashMap<String, Integer> pressedKeys;
     private int tickBase;
     private Boolean ctrlPressed;
+    private Boolean isTickable;
+    private int totalTickDelay;
 
     //recursos
     private Robot robot;
@@ -113,14 +115,14 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             lbStatus.setText("RECORDING");
             lbStatus.setForeground(new Color(60,179,113));
             recordButton.setText("Stop");
-            frame.setState(JFrame.ICONIFIED);
+            //frame.setState(JFrame.ICONIFIED);
             mouseMoveOnScreen();
         }   else {
             lbStatus.setText("IDLE");
             lbStatus.setForeground(new Color(0,0,0));
             recordButton.setText("Record");
             removeListeners();
-            frame.setState(JFrame.NORMAL);
+            //frame.setState(JFrame.NORMAL);
         }
     }
 
@@ -171,7 +173,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             pressedKeys.put(keyChar, e.getKeyCode());
             lastKeyPressed = keyChar;
             ctrlPressed = keyChar.equals("Ctrl");
-            if (tickClick.isSelected() && ctrlPressed) {
+            if (isTickable && ctrlPressed) {
                 pressedKeys.put(keyChar, e.getKeyCode());
             }else {
                 lastEvent = System.currentTimeMillis();
@@ -192,13 +194,18 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             start = System.currentTimeMillis();
             lastKeyPressed = "FREE";
             pressedKeys.remove(keyChar,e.getKeyCode());
-            lastEvent = System.currentTimeMillis();
             ctrlPressed = pressedKeys.containsKey("Ctrl");
-            if (tickClick.isSelected() && !ctrlPressed){
-                ctrlPressed = false;
-            } else {
+            lastEvent = System.currentTimeMillis();
+
+            if ((isTickable && !keyChar.equals("Ctrl")) || !isTickable) {
+                System.out.println(keyChar);
                 updateTable(keyChar, "Key Released "+ e.getKeyCode(), delay + "ms");
                 delay = delayCalc(start, lastEvent, false);
+            }
+
+            if (isTickable && ctrlPressed) {// se chegou aqui é pq soltou o ctrl
+                ctrlPressed = false;
+                pressedKeys.remove("Ctrl");
             }
         }
     }
@@ -296,10 +303,12 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         hasKeyPressed = false;
         isRecording = false;
         ctrlPressed = false;
+        isTickable = false;
 
         row = new String[3];
         lastKeyPressed = "";
 
+        totalTickDelay = 0;
         lastEvent = 0;
         tickBase = 0;
         start = 0;
@@ -327,6 +336,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             @Override
             public void actionPerformed(ActionEvent e) {
                 tickBase = tickClick.isSelected() ? 600 : 0; //0.6s
+                isTickable = !isTickable;
             }
         });
 
