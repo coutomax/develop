@@ -80,18 +80,17 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!isRecording && timer.isRunning()) {
+                if (!getRecording() && timer.isRunning()) {
                     timer.stop();
                 } else {
                     Point p = MouseInfo.getPointerInfo().getLocation();
                     if (!p.equals(lastPoint)) {
-                        start = System.currentTimeMillis();
+                        setStart(System.currentTimeMillis());
                         gp.lineTo(p.x, p.y);
-                        updateTable(p.x+ ", " +p.y, "Mouse Movement", delay + "ms");
+                        updateTable(p.x+ ", " +p.y, "Mouse Movement", getDelay() + "ms");
                     }
-                    lastEvent  = System.currentTimeMillis();
-
-                    delay = delayCalc(lastEvent, start, false);
+                    setLastEvent(System.currentTimeMillis());
+                    setDelay(delayCalc(lastEvent, start, false));
                     lastPoint = p;
                 }
 
@@ -109,7 +108,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         tabela.scrollRectToVisible(tabela.getCellRect(tabela.getRowCount()-1, 0, true));
     }
 
-    private void changeStatus(Boolean isRec) throws NativeHookException {
+    private void changeStatus (Boolean isRec) throws NativeHookException {
         isRecording = isRec;
         if (isRec) {
             lbStatus.setText("RECORDING");
@@ -127,11 +126,11 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     }
 
     private void recordAction (ActionEvent e) throws AWTException, NativeHookException {
-        lastKeyPressed = "";
-        changeStatus(!isRecording);
+        setLastKeyPressed("");
+        changeStatus(!getRecording());
     }
 
-    public void registerListeners() throws NativeHookException {
+    public void registerListeners () throws NativeHookException {
         GlobalScreen.setEventDispatcher(new SwingDispatchService());
         GlobalScreen.registerNativeHook();
         GlobalScreen.addNativeKeyListener(this);
@@ -140,7 +139,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         GlobalScreen.addNativeMouseWheelListener(this);
     }
 
-    public void removeListeners() throws NativeHookException {
+    public void removeListeners () throws NativeHookException {
         GlobalScreen.isNativeHookRegistered();
         GlobalScreen.removeNativeMouseListener(this);
         GlobalScreen.removeNativeMouseMotionListener(this);
@@ -150,35 +149,35 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     /**
      * @see NativeKeyListener#nativeKeyPressed(NativeKeyEvent)
      */
-    public void nativeKeyPressed(NativeKeyEvent e) {
+    public void nativeKeyPressed (NativeKeyEvent e) {
         String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
         keyChar = keyChar.substring(8,keyChar.indexOf(","));
 
-        if(keyChar.equals("F5")){
+        if(keyChar.equals("F5")) {
             confirmDiscard();
         }
 
-        if (keyChar.equals("F2")){
+        if (keyChar.equals("F2")) {
             //stop if running
         }
 
-        if (keyChar.equals("F1")){
+        if (keyChar.equals("F1")) {
             try {
-                changeStatus(!isRecording);
+                changeStatus(!getRecording());
             } catch (NativeHookException ex) {
                 throw new RuntimeException(ex);
             }
-        }else if (!pressedKeys.containsKey(keyChar) && isRecording && !keyChar.equals("F2")) {
-            start = System.currentTimeMillis();
+        }else if (!pressedKeys.containsKey(keyChar) && getRecording() && !keyChar.equals("F2")) {
+            setStart(System.currentTimeMillis());
             pressedKeys.put(keyChar, e.getKeyCode());
-            lastKeyPressed = keyChar;
-            ctrlPressed = keyChar.equals("Ctrl");
-            if (isTickable && ctrlPressed) {
+            setLastKeyPressed(keyChar);
+            setCtrlPressed(keyChar.equals("Ctrl"));
+            if (getTickable() && getCtrlPressed()) {
                 pressedKeys.put(keyChar, e.getKeyCode());
             }else {
-                lastEvent = System.currentTimeMillis();
-                updateTable(keyChar, "Key Pressed "+ e.getKeyCode(), delay + "ms");
-                delay = delayCalc(start, lastEvent, false);
+                setLastEvent(System.currentTimeMillis());
+                updateTable(keyChar, "Key Pressed "+ e.getKeyCode(), getDelay() + "ms");
+                setDelay(delayCalc(lastEvent, start, false));
             }
         }
     }
@@ -186,25 +185,26 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     /**
      * @see NativeKeyListener#nativeKeyReleased(NativeKeyEvent)
      */
-    public void nativeKeyReleased(NativeKeyEvent e) {
+    public void nativeKeyReleased (NativeKeyEvent e) {
         String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
         keyChar = keyChar.substring(8,keyChar.indexOf(","));
 
         if (!lastKeyPressed.equals("") && isRecording && (!keyChar.equals("F1") || !keyChar.equals("F2"))) {
-            start = System.currentTimeMillis();
-            lastKeyPressed = "FREE";
+            setStart(System.currentTimeMillis());
+            setLastKeyPressed("FREE");
             pressedKeys.remove(keyChar,e.getKeyCode());
-            ctrlPressed = pressedKeys.containsKey("Ctrl");
-            lastEvent = System.currentTimeMillis();
+            setCtrlPressed(pressedKeys.containsKey("Ctrl"));
+            setLastEvent(System.currentTimeMillis());
 
-            if ((isTickable && !keyChar.equals("Ctrl")) || !isTickable) {
-                System.out.println(keyChar);
-                updateTable(keyChar, "Key Released "+ e.getKeyCode(), delay + "ms");
-                delay = delayCalc(start, lastEvent, false);
+            if ((getTickable() && !keyChar.equals("Ctrl")) || !getTickable()) {
+                //String value = tabela.getModel().getValueAt(tabela.getRowCount() - 1, 2).toString();
+                //totalTickDelay += Integer.parseInt(value.substring(0, value.indexOf("m")));
+                updateTable(keyChar, "Key Released "+ e.getKeyCode(), getDelay() + "ms");
+                setDelay(delayCalc(lastEvent, start, false));
             }
 
             if (isTickable && ctrlPressed) {// se chegou aqui é pq soltou o ctrl
-                ctrlPressed = false;
+                setCtrlPressed(false);
                 pressedKeys.remove("Ctrl");
             }
         }
@@ -213,66 +213,66 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     /**
      * @see NativeKeyListener#nativeKeyTyped(NativeKeyEvent)
      */
-    public void nativeKeyTyped(NativeKeyEvent e) { }
+    public void nativeKeyTyped (NativeKeyEvent e) { }
 
     /**
      * @see NativeMouseListener#nativeMousePressed(NativeMouseEvent)
      */
-    public void nativeMousePressed(NativeMouseEvent e) {
+    public void nativeMousePressed (NativeMouseEvent e) {
         if (isRecording) {
-            start = System.currentTimeMillis();
+            setStart(System.currentTimeMillis());
             Point p = MouseInfo.getPointerInfo().getLocation();
-            lastEvent = System.currentTimeMillis();
+            setLastEvent(System.currentTimeMillis());
             updateTable(p.x+ ", " +p.y, "Mouse Pressed "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"),
-                    ((e.getButton() == 1 && ctrlPressed)? delayCalc(start, lastEvent, true) : delay) + "ms");
-            delay = delayCalc(start, lastEvent, false);
+                    ((e.getButton() == 1 && ctrlPressed)? delayCalc(start, lastEvent, true) : getDelay()) + "ms");
+            setDelay(delayCalc(lastEvent, start, false));
         }
     }
 
     /**
      * @see NativeMouseListener#nativeMouseReleased(NativeMouseEvent)
      */
-    public void nativeMouseReleased(NativeMouseEvent e) {
+    public void nativeMouseReleased (NativeMouseEvent e) {
         if (isRecording) {
-            start = System.currentTimeMillis();
+            setStart(System.currentTimeMillis());
             Point p = MouseInfo.getPointerInfo().getLocation();
-            lastEvent = System.currentTimeMillis();
-            updateTable(p.x+ ", " +p.y, "Mouse Released "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"), delay + "ms");
-            delay = delayCalc(lastEvent, start, false);
+            setLastEvent(System.currentTimeMillis());
+            updateTable(p.x+ ", " +p.y, "Mouse Released "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"), getDelay() + "ms");
+            setDelay(delayCalc(lastEvent, start, false));
         }
     }
 
     /**
      * @see NativeMouseListener#nativeMouseClicked(NativeMouseEvent)
      */
-    public void nativeMouseClicked(NativeMouseEvent e) {
+    public void nativeMouseClicked (NativeMouseEvent e) {
 
     }
 
     /**
      * @see NativeMouseMotionListener#nativeMouseMoved(NativeMouseEvent)
      */
-    public void nativeMouseMoved(NativeMouseEvent e) { }
+    public void nativeMouseMoved (NativeMouseEvent e) { }
 
     /**
      * @see NativeMouseMotionListener#nativeMouseDragged(NativeMouseEvent)
      */
-    public void nativeMouseDragged(NativeMouseEvent e) { }
+    public void nativeMouseDragged (NativeMouseEvent e) { }
 
     /**
      * @see NativeMouseWheelListener#nativeMouseWheelMoved(NativeMouseWheelEvent)
      */
-    public void nativeMouseWheelMoved(NativeMouseWheelEvent e) {
+    public void nativeMouseWheelMoved (NativeMouseWheelEvent e) {
         if (isRecording) {
-            start = System.currentTimeMillis();
+            setStart(System.currentTimeMillis());
             Point p = MouseInfo.getPointerInfo().getLocation();
-            lastEvent = System.currentTimeMillis();
-            updateTable((e.getWheelRotation() == 1 ? "DOWN" : "UP"), "Mouse Wheel", delay + "ms");
-            delay = delayCalc(start , lastEvent, false);
+            setLastEvent(System.currentTimeMillis());
+            updateTable((e.getWheelRotation() == 1 ? "DOWN" : "UP"), "Mouse Wheel", getDelay() + "ms");
+            setDelay(delayCalc(lastEvent, start, false));
         }
     }
 
-    private void confirmDiscard (){
+    private void confirmDiscard () {
         try {
             changeStatus(false);
         } catch (NativeHookException ex) {
@@ -287,14 +287,19 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                 }
             }
         }
-
     }
 
     private long delayCalc (long end, long start, Boolean tickable) {
+        if (tickable) { // funcionando + ou -, precisa pegar a soma dos eventos, e não só o ultimo delay
+            //String value = tabela.getModel().getValueAt(tabela.getRowCount() - 1, 2).toString();
+            //totalTickDelay += Integer.parseInt(value.substring(0, value.indexOf("m")));
+            tickBase -= totalTickDelay;
+            totalTickDelay = 0;
+        }
         return tickable ? (tickBase == 0) ? delay : tickBase : end - start;
     }
 
-    private void initComponents(){
+    private void initComponents () {
         frame = new JFrame("Basics");
 
         //inicialização de variaveis
@@ -336,7 +341,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             @Override
             public void actionPerformed(ActionEvent e) {
                 tickBase = tickClick.isSelected() ? 600 : 0; //0.6s
-                isTickable = !isTickable;
+                setTickable(!isTickable);
             }
         });
 
@@ -363,5 +368,85 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         frame.pack();
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
+    }
+
+    public long getStart() {
+        return start;
+    }
+
+    public void setStart(long start) {
+        this.start = start;
+    }
+
+    public long getDelay() {
+        return delay;
+    }
+
+    public void setDelay(long delay) {
+        this.delay = delay;
+    }
+
+    public long getLastEvent() {
+        return lastEvent;
+    }
+
+    public void setLastEvent(long lastEvent) {
+        this.lastEvent = lastEvent;
+    }
+
+    public Boolean getRecording() {
+        return isRecording;
+    }
+
+    public void setRecording(Boolean recording) {
+        isRecording = recording;
+    }
+
+    public String getLastKeyPressed() {
+        return lastKeyPressed;
+    }
+
+    public void setLastKeyPressed(String lastKeyPressed) {
+        this.lastKeyPressed = lastKeyPressed;
+    }
+
+    public Boolean getHasKeyPressed() {
+        return hasKeyPressed;
+    }
+
+    public void setHasKeyPressed(Boolean hasKeyPressed) {
+        this.hasKeyPressed = hasKeyPressed;
+    }
+
+    public int getTickBase() {
+        return tickBase;
+    }
+
+    public void setTickBase(int tickBase) {
+        this.tickBase = tickBase;
+    }
+
+    public Boolean getCtrlPressed() {
+        return ctrlPressed;
+    }
+
+    public void setCtrlPressed(Boolean ctrlPressed) {
+        this.ctrlPressed = ctrlPressed;
+    }
+
+    public Boolean getTickable() {
+        return isTickable;
+    }
+
+    public void setTickable(Boolean tickable) {
+        isTickable = tickable;
+    }
+
+    public int getTotalTickDelay() {
+        return totalTickDelay;
+    }
+
+    public void setTotalTickDelay(int totalTickDelay) {
+        this.totalTickDelay = totalTickDelay;
     }
 }
