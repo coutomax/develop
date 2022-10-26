@@ -305,19 +305,19 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         //inicialização de variaveis
         pressedKeys = new HashMap<>();
 
-        hasKeyPressed = false;
-        isRecording = false;
-        ctrlPressed = false;
-        isTickable = false;
+        setHasKeyPressed(false);
+        setCtrlPressed(false);
+        setRecording(false);
+        setTickable(false);
 
         row = new String[3];
-        lastKeyPressed = "";
+        setLastKeyPressed("");
 
-        totalTickDelay = 0;
-        lastEvent = 0;
-        tickBase = 0;
-        start = 0;
-        delay = 1;
+        setTotalTickDelay(0);
+        setLastEvent(0);
+        setTickBase(0);
+        setStart(0);
+        setDelay(0);
 
         lastPoint = null;
 
