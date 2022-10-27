@@ -192,10 +192,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
         keyChar = keyChar.substring(8,keyChar.indexOf(","));
 
-        if (!getLastKeyPressed().equals("")
-                && getRecording()
-                && (!keyChar.equals("F1")
-                || !keyChar.equals("F2"))) {
+        if (!getLastKeyPressed().equals("") && getRecording()) {
 
             setStart(System.currentTimeMillis());
             setLastKeyPressed("FREE");
@@ -203,12 +200,10 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             setCtrlPressed(pressedKeys.containsKey("Ctrl"));
             setLastEvent(System.currentTimeMillis());
 
-            if ((getTickable()
-                    && !keyChar.equals("Ctrl")
+            if (!getTickable() || (!keyChar.equals("Ctrl")
                     && !keyChar.equals("F1")
                     && !keyChar.equals("F2")
-                    && !keyChar.equals("F5"))
-                    || !getTickable()) {
+                    && !keyChar.equals("F5"))) {
                 updateTable(keyChar, "Key Released "+ e.getKeyCode(), getDelay() + "ms");
                 setDelay(delayCalc(lastEvent, start, false));
             }
