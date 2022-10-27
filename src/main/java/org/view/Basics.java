@@ -167,7 +167,10 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             } catch (NativeHookException ex) {
                 throw new RuntimeException(ex);
             }
-        }else if (!pressedKeys.containsKey(keyChar) && getRecording() && !keyChar.equals("F2")) {
+        }else if (!pressedKeys.containsKey(keyChar)
+                && getRecording()
+                && !keyChar.equals("F2")) {
+
             setStart(System.currentTimeMillis());
             pressedKeys.put(keyChar, e.getKeyCode());
             setLastKeyPressed(keyChar);
@@ -189,22 +192,28 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         String keyChar = e.paramString().substring(e.paramString().lastIndexOf("keyText="));
         keyChar = keyChar.substring(8,keyChar.indexOf(","));
 
-        if (!lastKeyPressed.equals("") && isRecording && (!keyChar.equals("F1") || !keyChar.equals("F2"))) {
+        if (!getLastKeyPressed().equals("")
+                && getRecording()
+                && (!keyChar.equals("F1")
+                || !keyChar.equals("F2"))) {
+
             setStart(System.currentTimeMillis());
             setLastKeyPressed("FREE");
             pressedKeys.remove(keyChar,e.getKeyCode());
             setCtrlPressed(pressedKeys.containsKey("Ctrl"));
             setLastEvent(System.currentTimeMillis());
 
-            if ((getTickable() && !keyChar.equals("Ctrl")) || !getTickable()) {
-                //String value = tabela.getModel().getValueAt(tabela.getRowCount() - 1, 2).toString();
-                //totalTickDelay += Integer.parseInt(value.substring(0, value.indexOf("m")));
+            if ((getTickable()
+                    && !keyChar.equals("Ctrl")
+                    && !keyChar.equals("F1")
+                    && !keyChar.equals("F2")
+                    && !keyChar.equals("F5"))
+                    || !getTickable()) {
                 updateTable(keyChar, "Key Released "+ e.getKeyCode(), getDelay() + "ms");
                 setDelay(delayCalc(lastEvent, start, false));
             }
-
-            if (isTickable && ctrlPressed) {// se chegou aqui é pq soltou o ctrl
-                setCtrlPressed(false);
+            // se chegou aqui é pq soltou o ctrl
+            if (getTickable() && !getCtrlPressed()) {
                 pressedKeys.remove("Ctrl");
             }
         }
@@ -273,12 +282,13 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     }
 
     private void confirmDiscard () {
-        try {
-            changeStatus(false);
-        } catch (NativeHookException ex) {
-            throw new RuntimeException(ex);
-        } finally {
-            if (modelTabela.getRowCount() > 0){
+            if (modelTabela.getRowCount() > 0 && getRecording()){
+                try {
+                    changeStatus(false);
+                } catch (NativeHookException ex) {
+                    throw new RuntimeException(ex);
+                }
+
                 int resp = JOptionPane.showConfirmDialog(null,"Do you really want to discard the " +
                         "current recording?","Warning!",JOptionPane.YES_NO_OPTION);
 
@@ -286,17 +296,18 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                     modelTabela.setRowCount(0);
                 }
             }
+    }
+
+    private void properDelayTickCalc (Boolean tickable) {
+        if (tickable) {
+            String value = tabela.getModel().getValueAt(tabela.getRowCount() - 1, 2).toString();
+            setTotalTickDelay(getTotalTickDelay() + Integer.parseInt(value.substring(0, value.indexOf("m"))));
+            setTickBase(getTotalTickDelay());
         }
     }
 
     private long delayCalc (long end, long start, Boolean tickable) {
-        if (tickable) { // funcionando + ou -, precisa pegar a soma dos eventos, e não só o ultimo delay
-            //String value = tabela.getModel().getValueAt(tabela.getRowCount() - 1, 2).toString();
-            //totalTickDelay += Integer.parseInt(value.substring(0, value.indexOf("m")));
-            tickBase -= totalTickDelay;
-            totalTickDelay = 0;
-        }
-        return tickable ? (tickBase == 0) ? delay : tickBase : end - start;
+        return tickable ? (getTickBase() == 0) ? getDelay() : getTickBase() : end - start;
     }
 
     private void initComponents () {
@@ -329,7 +340,9 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         modelTabela = new DefaultTableModel(
                 new Object[][] { },
                 new String[] {
-                        "Input", "Event", "Delay"
+                        "Input",
+                        "Event",
+                        "Delay"
                 });
         tabela.setModel(modelTabela);
         tabela.getTableHeader().setReorderingAllowed(false);
@@ -340,7 +353,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         tickClick.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                tickBase = tickClick.isSelected() ? 600 : 0; //0.6s
+                setTickBase(tickClick.isSelected() ? 600 : 0);
                 setTickable(!isTickable);
             }
         });
