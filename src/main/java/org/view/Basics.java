@@ -199,7 +199,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             pressedKeys.remove(keyChar,e.getKeyCode());
             setCtrlPressed(pressedKeys.containsKey("Ctrl"));
             setLastEvent(System.currentTimeMillis());
-//ttestes
+
             if (!getTickable() || (!keyChar.equals("Ctrl")
                     && !keyChar.equals("F1")
                     && !keyChar.equals("F2")
