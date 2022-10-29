@@ -58,6 +58,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private Boolean ctrlPressed;
     private Boolean isTickable;
     private int totalTickDelay;
+    private Boolean showDialog;
 
     //recursos
     private Robot robot;
@@ -174,7 +175,9 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             setStart(System.currentTimeMillis());
             pressedKeys.put(keyChar, e.getKeyCode());
             setLastKeyPressed(keyChar);
-            setCtrlPressed(keyChar.equals("Ctrl"));
+            if (keyChar.equals("Ctrl")) {
+                setCtrlPressed(true);
+            }
             if (getTickable() && getCtrlPressed()) {
                 pressedKeys.put(keyChar, e.getKeyCode());
             }else {
@@ -193,7 +196,6 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         keyChar = keyChar.substring(8,keyChar.indexOf(","));
 
         if (!getLastKeyPressed().equals("") && getRecording()) {
-
             setStart(System.currentTimeMillis());
             setLastKeyPressed("FREE");
             pressedKeys.remove(keyChar,e.getKeyCode());
@@ -207,7 +209,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                 updateTable(keyChar, "Key Released "+ e.getKeyCode(), getDelay() + "ms");
                 setDelay(delayCalc(lastEvent, start, false));
             }
-            // se chegou aqui é pq soltou o ctrl
+            //soltou o ctrl
             if (getTickable() && !getCtrlPressed()) {
                 pressedKeys.remove("Ctrl");
             }
@@ -277,12 +279,14 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     }
 
     private void confirmDiscard () {
-            if (modelTabela.getRowCount() > 0 && getRecording()){
+            if (modelTabela.getRowCount() > 0 && !getShowDialog()){
                 try {
                     changeStatus(false);
                 } catch (NativeHookException ex) {
                     throw new RuntimeException(ex);
                 }
+
+                changeDialogState();
 
                 int resp = JOptionPane.showConfirmDialog(null,"Do you really want to discard the " +
                         "current recording?","Warning!",JOptionPane.YES_NO_OPTION);
@@ -290,7 +294,13 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                 if(resp == 0){
                     modelTabela.setRowCount(0);
                 }
+
+                changeDialogState();
             }
+    }
+
+    private void changeDialogState(){
+        setShowDialog(!getShowDialog());
     }
 
     private void properDelayTickCalc (Boolean tickable) {
@@ -313,6 +323,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
 
         setHasKeyPressed(false);
         setCtrlPressed(false);
+        setShowDialog(false);
         setRecording(false);
         setTickable(false);
 
@@ -456,5 +467,13 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
 
     public void setTotalTickDelay(int totalTickDelay) {
         this.totalTickDelay = totalTickDelay;
+    }
+
+    public Boolean getShowDialog() {
+        return showDialog;
+    }
+
+    public void setShowDialog(Boolean showDialog) {
+        this.showDialog = showDialog;
     }
 }
