@@ -117,16 +117,16 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             lbStatus.setText("RECORDING");
             lbStatus.setForeground(new Color(60,179,113));
             recordButton.setText("Stop");
-            //frame.setState(JFrame.ICONIFIED);
+            frame.setState(JFrame.ICONIFIED);
             registerListeners();
             mouseMoveOnScreen();
-        }   else {
+        } else {
             lbStatus.setText("IDLE");
             lbStatus.setForeground(new Color(0,0,0));
             recordButton.setText("Record");
             removeListeners();
             initVars();
-            //frame.setState(JFrame.NORMAL);
+            frame.setState(JFrame.NORMAL);
         }
     }
 
