@@ -59,6 +59,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private Boolean isTickable;
     private int totalTickDelay;
     private Boolean showDialog;
+    private Boolean isRegistredEvents;
 
     //recursos
     private Robot robot;
@@ -89,6 +90,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                         setStart(System.currentTimeMillis());
                         gp.lineTo(p.x, p.y);
                         updateTable(p.x+ ", " +p.y, "Mouse Movement", getDelay() + "ms");
+                        delaySum();
                     }
                     setLastEvent(System.currentTimeMillis());
                     setDelay(delayCalc(lastEvent, start, false));
@@ -116,12 +118,14 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             lbStatus.setForeground(new Color(60,179,113));
             recordButton.setText("Stop");
             //frame.setState(JFrame.ICONIFIED);
+            registerListeners();
             mouseMoveOnScreen();
         }   else {
             lbStatus.setText("IDLE");
             lbStatus.setForeground(new Color(0,0,0));
             recordButton.setText("Record");
             removeListeners();
+            initVars();
             //frame.setState(JFrame.NORMAL);
         }
     }
@@ -132,19 +136,24 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     }
 
     public void registerListeners () throws NativeHookException {
-        GlobalScreen.setEventDispatcher(new SwingDispatchService());
-        GlobalScreen.registerNativeHook();
-        GlobalScreen.addNativeKeyListener(this);
-        GlobalScreen.addNativeMouseListener(this);
-        GlobalScreen.addNativeMouseMotionListener(this);
-        GlobalScreen.addNativeMouseWheelListener(this);
+        if (!getRegistredEvents()) {
+            GlobalScreen.setEventDispatcher(new SwingDispatchService());
+            GlobalScreen.registerNativeHook();
+            GlobalScreen.addNativeMouseListener(this);
+            GlobalScreen.addNativeMouseMotionListener(this);
+            GlobalScreen.addNativeMouseWheelListener(this);
+            setRegistredEvents(true);
+        }
     }
 
     public void removeListeners () throws NativeHookException {
-        GlobalScreen.isNativeHookRegistered();
-        GlobalScreen.removeNativeMouseListener(this);
-        GlobalScreen.removeNativeMouseMotionListener(this);
-        GlobalScreen.removeNativeMouseWheelListener(this);
+        if (getRegistredEvents()) {
+            GlobalScreen.isNativeHookRegistered();
+            GlobalScreen.removeNativeMouseListener(this);
+            GlobalScreen.removeNativeMouseMotionListener(this);
+            GlobalScreen.removeNativeMouseWheelListener(this);
+            setRegistredEvents(false);
+        }
     }
 
     /**
@@ -170,20 +179,19 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             }
         }else if (!pressedKeys.containsKey(keyChar)
                 && getRecording()
-                && !keyChar.equals("F2")) {
+                && !keyChar.equals("F2")) { // ao inv[es de usar !keyChar.equals("F2") da pra usar um if-else na linha do F2
 
             setStart(System.currentTimeMillis());
             pressedKeys.put(keyChar, e.getKeyCode());
             setLastKeyPressed(keyChar);
-            if (keyChar.equals("Ctrl")) {
-                setCtrlPressed(true);
-            }
+            setCtrlPressed(keyChar.equals("Ctrl"));
             if (getTickable() && getCtrlPressed()) {
                 pressedKeys.put(keyChar, e.getKeyCode());
             }else {
                 setLastEvent(System.currentTimeMillis());
                 updateTable(keyChar, "Key Pressed "+ e.getKeyCode(), getDelay() + "ms");
                 setDelay(delayCalc(lastEvent, start, false));
+                delaySum();
             }
         }
     }
@@ -208,10 +216,12 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                     && !keyChar.equals("F5"))) {
                 updateTable(keyChar, "Key Released "+ e.getKeyCode(), getDelay() + "ms");
                 setDelay(delayCalc(lastEvent, start, false));
+                delaySum();
             }
             //soltou o ctrl
             if (getTickable() && !getCtrlPressed()) {
                 pressedKeys.remove("Ctrl");
+                setTotalTickDelay(0);
             }
         }
     }
@@ -242,9 +252,11 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         if (isRecording) {
             setStart(System.currentTimeMillis());
             Point p = MouseInfo.getPointerInfo().getLocation();
+            setTotalTickDelay(0);
             setLastEvent(System.currentTimeMillis());
             updateTable(p.x+ ", " +p.y, "Mouse Released "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"), getDelay() + "ms");
             setDelay(delayCalc(lastEvent, start, false));
+            delaySum();
         }
     }
 
@@ -275,6 +287,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             setLastEvent(System.currentTimeMillis());
             updateTable((e.getWheelRotation() == 1 ? "DOWN" : "UP"), "Mouse Wheel", getDelay() + "ms");
             setDelay(delayCalc(lastEvent, start, false));
+            delaySum();
         }
     }
 
@@ -294,7 +307,6 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                 if(resp == 0){
                     modelTabela.setRowCount(0);
                 }
-
                 changeDialogState();
             }
     }
@@ -303,11 +315,16 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         setShowDialog(!getShowDialog());
     }
 
-    private void properDelayTickCalc (Boolean tickable) {
-        if (tickable) {
-            String value = tabela.getModel().getValueAt(tabela.getRowCount() - 1, 2).toString();
-            setTotalTickDelay(getTotalTickDelay() + Integer.parseInt(value.substring(0, value.indexOf("m"))));
-            setTickBase(getTotalTickDelay());
+    private void delaySum () {
+        if (getTickable()) {
+            String currentRow = tabela.getModel().getValueAt(tabela.getRowCount() -1, 2).toString();
+            setTotalTickDelay(getTotalTickDelay() + Integer.parseInt(currentRow.substring(0, currentRow.indexOf("m"))));
+
+            if (getTotalTickDelay() >= 600) {
+                setTickBase(1);
+            } else {
+                setTickBase(600 - getTotalTickDelay());
+            }
         }
     }
 
@@ -315,28 +332,45 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         return tickable ? (getTickBase() == 0) ? getDelay() : getTickBase() : end - start;
     }
 
-    private void initComponents () {
-        frame = new JFrame("Basics");
-
+    private void initVars () {
         //inicialização de variaveis
         pressedKeys = new HashMap<>();
 
+        if (!pressedKeys.isEmpty()) {
+            pressedKeys.clear();
+        }
+
+        //String[]
+        row = new String[3];
+
+        //boolean
+        setTickable(tickClick.isSelected());
+        setRegistredEvents(false);
         setHasKeyPressed(false);
         setCtrlPressed(false);
         setShowDialog(false);
         setRecording(false);
-        setTickable(false);
 
-        row = new String[3];
-        setLastKeyPressed("");
-
+        //int e long
         setTotalTickDelay(0);
         setLastEvent(0);
         setTickBase(0);
         setStart(0);
         setDelay(0);
 
-        lastPoint = null;
+        //String
+        setLastKeyPressed("");
+
+        //point
+        setLastPoint(null);
+    }
+
+    private void initComponents () {
+        GlobalScreen.addNativeKeyListener(this);
+
+        frame = new JFrame("Basics");
+
+        initVars();
 
         timesTo.setModel(new SpinnerNumberModel(0,0,null,1));
         JFormattedTextField numericTimesTo = ((JSpinner.NumberEditor) timesTo.getEditor()).getTextField();
@@ -475,5 +509,21 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
 
     public void setShowDialog(Boolean showDialog) {
         this.showDialog = showDialog;
+    }
+
+    public Point getLastPoint() {
+        return lastPoint;
+    }
+
+    public void setLastPoint(Point lastPoint) {
+        this.lastPoint = lastPoint;
+    }
+
+    public Boolean getRegistredEvents() {
+        return isRegistredEvents;
+    }
+
+    public void setRegistredEvents(Boolean registredEvents) {
+        isRegistredEvents = registredEvents;
     }
 }
