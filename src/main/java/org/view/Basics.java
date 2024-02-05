@@ -1,31 +1,25 @@
 package org.view;
 
+import com.github.kwhat.jnativehook.GlobalScreen;
+import com.github.kwhat.jnativehook.NativeHookException;
+import com.github.kwhat.jnativehook.dispatcher.SwingDispatchService;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
+import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
+import com.github.kwhat.jnativehook.mouse.*;
+import org.event.EventList;
+import org.event.EventRunner;
+import org.event.SpecialKeyAdapter;
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import com.github.kwhat.jnativehook.GlobalScreen;
-import com.github.kwhat.jnativehook.NativeHookException;
-import com.github.kwhat.jnativehook.dispatcher.SwingDispatchService;
-import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
-import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
-import com.github.kwhat.jnativehook.mouse.NativeMouseEvent;
-import com.github.kwhat.jnativehook.mouse.NativeMouseInputListener;
-import com.github.kwhat.jnativehook.mouse.NativeMouseListener;
-import com.github.kwhat.jnativehook.mouse.NativeMouseMotionListener;
-import com.github.kwhat.jnativehook.mouse.NativeMouseWheelEvent;
-import com.github.kwhat.jnativehook.mouse.NativeMouseWheelListener;
-import org.event.EventList;
-import org.event.EventRunner;
-import org.event.SpecialKeyAdapter;
 
 public class Basics implements NativeKeyListener, NativeMouseInputListener, NativeMouseWheelListener{
     //componentes
@@ -57,7 +51,6 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private String lastKeyPressed;
     private Boolean hasKeyPressed;
     private HashMap<String, Integer> pressedKeys;
-    private HashMap<Integer, Integer> SpecialKeys;
     private int tickBase;
     private Boolean ctrlPressed;
     private Boolean isTickable;
@@ -76,7 +69,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         registerListeners();
     }
 
-    private void mouseMoveOnScreen () throws NativeHookException {
+    private void mouseMoveOnScreen () {
         gp = new GeneralPath();
         Point p = MouseInfo.getPointerInfo().getLocation();
         gp.moveTo(p.x, p.y);
@@ -141,7 +134,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         }
     }
 
-    private void recordAction (ActionEvent e) throws AWTException, NativeHookException {
+    private void recordAction () throws AWTException, NativeHookException {
         setLastKeyPressed("");
         changeStatus(!getRecording());
     }
@@ -157,7 +150,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         }
     }
 
-    public void removeListeners () throws NativeHookException {
+    public void removeListeners () {
         if (getRegistredEvents()) {
             GlobalScreen.isNativeHookRegistered();
             GlobalScreen.removeNativeMouseListener(this);
@@ -295,7 +288,6 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     public void nativeMouseWheelMoved (NativeMouseWheelEvent e) {
         if (isRecording) {
             setStart(System.currentTimeMillis());
-            Point p = MouseInfo.getPointerInfo().getLocation();
             setLastEvent(System.currentTimeMillis());
             updateTable((e.getWheelRotation() == 1 ? "DOWN" : "UP"), "Mouse Wheel", getDelay() + "ms", -1);
             setDelay(delayCalc(lastEvent, start, false));
@@ -427,7 +419,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             @Override
             public void actionPerformed(ActionEvent e) {
                 try {
-                    recordAction(e);
+                    recordAction();
                 } catch (AWTException | NativeHookException ex) {
                     throw new RuntimeException(ex);
                 }
