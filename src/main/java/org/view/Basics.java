@@ -6,9 +6,11 @@ import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;
@@ -21,7 +23,9 @@ import com.github.kwhat.jnativehook.mouse.NativeMouseListener;
 import com.github.kwhat.jnativehook.mouse.NativeMouseMotionListener;
 import com.github.kwhat.jnativehook.mouse.NativeMouseWheelEvent;
 import com.github.kwhat.jnativehook.mouse.NativeMouseWheelListener;
-import com.sun.org.apache.xpath.internal.operations.Bool;
+import org.event.EventList;
+import org.event.EventRunner;
+import org.event.SpecialKeyAdapter;
 
 public class Basics implements NativeKeyListener, NativeMouseInputListener, NativeMouseWheelListener{
     //componentes
@@ -42,7 +46,6 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private JTable tabela;
     private DefaultTableModel tableModel;
     private JScrollPane scrollPn;
-    private ImageIcon icon;
     private DefaultTableModel modelTabela;
 
     // variáveis manipuláveis
@@ -54,6 +57,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private String lastKeyPressed;
     private Boolean hasKeyPressed;
     private HashMap<String, Integer> pressedKeys;
+    private HashMap<Integer, Integer> SpecialKeys;
     private int tickBase;
     private Boolean ctrlPressed;
     private Boolean isTickable;
@@ -62,10 +66,10 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
     private Boolean isRegistredEvents;
 
     //recursos
-    private Robot robot;
     private GeneralPath gp;
     private Timer timer;
     private Point lastPoint;
+    private List<EventList> eventList;
 
     public Basics () throws NativeHookException {
         initComponents();
@@ -89,7 +93,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                     if (!p.equals(lastPoint)) {
                         setStart(System.currentTimeMillis());
                         gp.lineTo(p.x, p.y);
-                        updateTable(p.x+ ", " +p.y, "Mouse Movement", getDelay() + "ms");
+                        updateTable(p.x+ ", " +p.y, "Mouse Movement", (getDelay() == 0 ? 1 : getDelay()) + "ms",-1);
                         delaySum();
                     }
                     setLastEvent(System.currentTimeMillis());
@@ -103,12 +107,19 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         timer.start();
     }
 
-    private void updateTable (String input, String event, String delayMs) {
+    private void updateTable (String input, String event, String delayMs, int nativeKeyEvent) {
         row[0] = input;
         row[1] = event;
         row[2] = delayMs;
         tableModel.addRow(row);
         tabela.scrollRectToVisible(tabela.getCellRect(tabela.getRowCount()-1, 0, true));
+
+        if (nativeKeyEvent == -1) {
+            eventList.add(new EventList(input, event, getDelay() == 0 ? 1 : getDelay()));
+        } else {
+            eventList.add(new EventList(nativeKeyEvent, event, getDelay() == 0 ? 1 : getDelay()));
+        }
+
     }
 
     private void changeStatus (Boolean isRec) throws NativeHookException {
@@ -168,7 +179,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         }
 
         if (keyChar.equals("F2")) {
-            //stop if running
+            play();
         }
 
         if (keyChar.equals("F1")) {
@@ -179,7 +190,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             }
         }else if (!pressedKeys.containsKey(keyChar)
                 && getRecording()
-                && !keyChar.equals("F2")) { // ao inv[es de usar !keyChar.equals("F2") da pra usar um if-else na linha do F2
+                && !keyChar.equals("F2")) {
 
             setStart(System.currentTimeMillis());
             pressedKeys.put(keyChar, e.getKeyCode());
@@ -189,7 +200,8 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                 pressedKeys.put(keyChar, e.getKeyCode());
             }else {
                 setLastEvent(System.currentTimeMillis());
-                updateTable(keyChar, "Key Pressed "+ e.getKeyCode(), getDelay() + "ms");
+                System.out.println(new SpecialKeyAdapter().isSpecialKey(e.getRawCode()));
+                updateTable(keyChar, "Key Pressed", getDelay() + "ms", new SpecialKeyAdapter().isSpecialKey(e.getRawCode()));
                 setDelay(delayCalc(lastEvent, start, false));
                 delaySum();
             }
@@ -214,7 +226,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
                     && !keyChar.equals("F1")
                     && !keyChar.equals("F2")
                     && !keyChar.equals("F5"))) {
-                updateTable(keyChar, "Key Released "+ e.getKeyCode(), getDelay() + "ms");
+                updateTable(keyChar, "Key Released", getDelay() + "ms", new SpecialKeyAdapter().isSpecialKey(e.getRawCode()));
                 setDelay(delayCalc(lastEvent, start, false));
                 delaySum();
             }
@@ -240,7 +252,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             Point p = MouseInfo.getPointerInfo().getLocation();
             setLastEvent(System.currentTimeMillis());
             updateTable(p.x+ ", " +p.y, "Mouse Pressed "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"),
-                    ((e.getButton() == 1 && ctrlPressed)? delayCalc(start, lastEvent, true) : getDelay()) + "ms");
+                    ((e.getButton() == 1 && ctrlPressed)? delayCalc(start, lastEvent, true) : getDelay()) + "ms", -1);
             setDelay(delayCalc(lastEvent, start, false));
         }
     }
@@ -254,7 +266,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             Point p = MouseInfo.getPointerInfo().getLocation();
             setTotalTickDelay(0);
             setLastEvent(System.currentTimeMillis());
-            updateTable(p.x+ ", " +p.y, "Mouse Released "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"), getDelay() + "ms");
+            updateTable(p.x+ ", " +p.y, "Mouse Released "+ (e.getButton() == 1 ? "LEFT" : "RIGHT"), getDelay() + "ms", -1);
             setDelay(delayCalc(lastEvent, start, false));
             delaySum();
         }
@@ -285,7 +297,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             setStart(System.currentTimeMillis());
             Point p = MouseInfo.getPointerInfo().getLocation();
             setLastEvent(System.currentTimeMillis());
-            updateTable((e.getWheelRotation() == 1 ? "DOWN" : "UP"), "Mouse Wheel", getDelay() + "ms");
+            updateTable((e.getWheelRotation() == 1 ? "DOWN" : "UP"), "Mouse Wheel", getDelay() + "ms", -1);
             setDelay(delayCalc(lastEvent, start, false));
             delaySum();
         }
@@ -306,6 +318,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
 
                 if(resp == 0){
                     modelTabela.setRowCount(0);
+                    eventList = new ArrayList<>();
                 }
                 changeDialogState();
             }
@@ -332,6 +345,10 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
         return tickable ? (getTickBase() == 0) ? getDelay() : getTickBase() : end - start;
     }
 
+    private void play () {
+        new EventRunner(eventList);
+    }
+
     private void initVars () {
         //inicialização de variaveis
         pressedKeys = new HashMap<>();
@@ -342,6 +359,11 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
 
         //String[]
         row = new String[3];
+
+        //map
+        if (eventList == null) {
+            eventList = new ArrayList<>();
+        }
 
         //boolean
         setTickable(tickClick.isSelected());
@@ -398,7 +420,7 @@ public class Basics implements NativeKeyListener, NativeMouseInputListener, Nati
             }
         });
 
-        icon = new ImageIcon("src/main/java/org/icons/robot-excited-outline.png");
+        ImageIcon icon = new ImageIcon("src/main/java/org/icons/robot-excited-outline.png");
 
         //actionPerformed dos botões
         recordButton.addActionListener(new ActionListener() {
